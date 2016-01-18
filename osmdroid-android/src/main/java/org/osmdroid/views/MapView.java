@@ -592,6 +592,14 @@ public class MapView extends ViewGroup implements IMapView, MapViewConstants,
 		return mScrollableAreaBoundingBox;
 	}
 
+	public float getHeightOffset() {
+		return mHeightOffset;
+	}
+
+	public void setHeightOffset(float mHeightOffset) {
+		this.mHeightOffset = mHeightOffset;
+	}
+
 	public void invalidateMapCoordinates(Rect dirty) {
 		invalidateMapCoordinates(dirty.left, dirty.top, dirty.right, dirty.bottom, false);
 	}
