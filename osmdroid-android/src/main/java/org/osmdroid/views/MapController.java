@@ -131,13 +131,22 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 	 */
 	@Override
 	public void animateTo(final IGeoPoint point) {
+		animateTo(point, 0.5f);
+	}
+	
+	public void animateTo(final IGeoPoint point, float heightOffset) {
+		if (heightOffset != 0.5f) {
+			heightOffset = validateHeightOffset(heightOffset);
+			mMapView.mHeightOffset = heightOffset;
+		}
+		
 		// If no layout, delay this call
 		if (!mMapView.isLayoutOccurred()) {
 			mReplayController.animateTo(point);
 			return;
 		}
 		Point p = mMapView.getProjection().toPixels(point, null);
-		animateTo(p.x, p.y);
+		animateTo(p.x, p.y, heightOffset);
 	}
 
 	/**
