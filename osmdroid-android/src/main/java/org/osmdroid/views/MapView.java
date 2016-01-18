@@ -75,6 +75,9 @@ public class MapView extends ViewGroup implements IMapView, MapViewConstants,
 	// ===========================================================
 	// Fields
 	// ===========================================================
+	
+	// height offset between 0 (top) and 1 (bottom) 
+	protected float mHeightOffset = 0.5f;
 
 	/** Current zoom level for map tiles. */
 	private int mZoomLevel = 0;
@@ -973,7 +976,7 @@ public class MapView extends ViewGroup implements IMapView, MapViewConstants,
 				mMultiTouchScalePoint.x, mMultiTouchScalePoint.y);
 
 		// Rotate the canvas
-		mRotateScaleMatrix.preRotate(mapOrientation, getWidth() / 2, getHeight() / 2);
+		mRotateScaleMatrix.preRotate(mapOrientation, getWidth() / 2, getHeight() * mHeightOffset);
 
 		// Apply the scale and rotate operations
 		c.concat(mRotateScaleMatrix);

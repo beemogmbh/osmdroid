@@ -144,6 +144,15 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 	 * Start animating the map towards the given point.
 	 */
 	public void animateTo(int x, int y) {
+		animateTo(x, y, 0.5f);
+	}
+	
+	public void animateTo(int x, int y, float heightOffset) {
+		if (heightOffset != 0.5f) {
+			heightOffset = validateHeightOffset(heightOffset);
+			mMapView.mHeightOffset = heightOffset;
+		}
+		
 		// If no layout, delay this call
 		if (!mMapView.isLayoutOccurred()) {
 			mReplayController.animateTo(x, y);
@@ -154,7 +163,7 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 			mMapView.mIsFlinging = false;
 			Point mercatorPoint = mMapView.getProjection().toMercatorPixels(x, y, null);
 			// The points provided are "center", we want relative to upper-left for scrolling
-			mercatorPoint.offset(-mMapView.getWidth() / 2, -mMapView.getHeight() / 2);
+			mercatorPoint.offset(-mMapView.getWidth() / 2, (int)((float)-mMapView.getHeight() * heightOffset));
 			final int xStart = mMapView.getScrollX();
 			final int yStart = mMapView.getScrollY();
 			mMapView.getScroller().startScroll(xStart, yStart, mercatorPoint.x - xStart,
@@ -173,6 +182,15 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 	 */
 	@Override
 	public void setCenter(final IGeoPoint point) {
+		setCenter(point, 0.5f);
+	}
+	
+	public void setCenter(final IGeoPoint point, float heightOffset) {
+		if (heightOffset != 0.5f) {
+			heightOffset = validateHeightOffset(heightOffset);
+			mMapView.mHeightOffset = heightOffset;
+		}
+		
 		// If no layout, delay this call
 		if (!mMapView.isLayoutOccurred()) {
 			mReplayController.setCenter(point);
@@ -182,7 +200,7 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 		Point p = mMapView.getProjection().toPixels(point, null);
 		p = mMapView.getProjection().toMercatorPixels(p.x, p.y, p);
 		// The points provided are "center", we want relative to upper-left for scrolling
-		p.offset(-mMapView.getWidth() / 2, -mMapView.getHeight() / 2);
+		p.offset(-mMapView.getWidth() / 2, (int)((float)-mMapView.getHeight() * heightOffset));
 		mMapView.scrollTo(p.x, p.y);
 	}
 
@@ -235,6 +253,10 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 	public boolean zoomIn() {
 		return zoomInFixing(mMapView.getWidth() / 2, mMapView.getHeight() / 2);
 	}
+	
+	public boolean zoomIn(final float heightOffset) {
+		return zoomInFixing(mMapView.getWidth() / 2, (int)((float)mMapView.getHeight() * validateHeightOffset(heightOffset)));
+	}
 
 	@Override
 	public boolean zoomInFixing(final int xPixel, final int yPixel) {
@@ -264,6 +286,10 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 	@Override
 	public boolean zoomOut() {
 		return zoomOutFixing(mMapView.getWidth() / 2, mMapView.getHeight() / 2);
+	}
+	
+	public boolean zoomOut(final float heightOffset) {
+		return zoomOutFixing(mMapView.getWidth() / 2, (int)((float)mMapView.getHeight() * validateHeightOffset(heightOffset)));
 	}
 
 	@Override
@@ -298,7 +324,7 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 				screenRect.centerY(), null);
 		p = mMapView.getProjection().toMercatorPixels(p.x, p.y, p);
 		// The points provided are "center", we want relative to upper-left for scrolling
-		p.offset(-mMapView.getWidth() / 2, -mMapView.getHeight() / 2);
+		p.offset(-mMapView.getWidth() / 2, -(int)((float)mMapView.getHeight() * mMapView.mHeightOffset));
 		mMapView.mIsAnimating.set(false);
 		mMapView.scrollTo(p.x, p.y);
 		setZoom(mMapView.mTargetZoomLevel.get());
@@ -313,6 +339,15 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 			mZoomInAnimationOld.reset();
 			mZoomOutAnimationOld.reset();
 		}
+	}
+	
+	protected float validateHeightOffset(float heightOffset) {
+		if (heightOffset < 0.f) {
+			heightOffset = 0.f;
+		} else if (heightOffset > 1.f) {
+			heightOffset = 1.f;
+		}
+		return heightOffset;
 	}
 
 	protected class MyZoomAnimatorListener extends AnimatorListenerAdapter {
