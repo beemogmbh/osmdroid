@@ -1236,7 +1236,7 @@ public class MapView extends ViewGroup implements IMapView, MapViewConstants,
 			// final IGeoPoint center = getProjection().fromPixels((int) e.getX(), (int) e.getY(),
 			// null);
 			getProjection().rotateAndScalePoint((int) e.getX(), (int) e.getY(), mRotateScalePoint);
-			return zoomInFixing(mRotateScalePoint.x, mRotateScalePoint.y);
+			return zoomInFixing(mRotateScalePoint.x, mRotateScalePoint.y - getHeight() / 2 + (int)((float)getHeight() * mHeightOffset));
 		}
 
 		@Override
