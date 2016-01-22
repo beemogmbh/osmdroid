@@ -44,6 +44,7 @@ public class Projection implements IProjection, MapViewConstants {
 	private final Rect mScreenRectProjection;
 	private final Rect mIntrinsicScreenRectProjection;
 	private final float mMapOrientation;
+	private final float mHeigthOffset;
 
 	Projection(MapView mapView) {
 
@@ -51,6 +52,7 @@ public class Projection implements IProjection, MapViewConstants {
 		mScreenRectProjection = mapView.getScreenRect(null);
 		mIntrinsicScreenRectProjection = mapView.getIntrinsicScreenRect(null);
 		mMapOrientation = mapView.getMapOrientation();
+		mHeigthOffset = mapView.getHeightOffset();
 
 		mMapViewWidth = mapView.getWidth();
 		mMapViewHeight = mapView.getHeight();
@@ -87,6 +89,10 @@ public class Projection implements IProjection, MapViewConstants {
 
 	public float getMapOrientation() {
 		return mMapOrientation;
+	}
+	
+	public float getHeightOffset() {
+		return mHeigthOffset;
 	}
 
 	@Override

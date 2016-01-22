@@ -17,6 +17,7 @@ import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
@@ -134,12 +135,7 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 		animateTo(point, 0.5f);
 	}
 	
-	public void animateTo(final IGeoPoint point, float heightOffset) {
-		if (heightOffset != 0.5f) {
-			heightOffset = validateHeightOffset(heightOffset);
-			mMapView.mHeightOffset = heightOffset;
-		}
-		
+	public void animateTo(final IGeoPoint point, float heightOffset) {	
 		// If no layout, delay this call
 		if (!mMapView.isLayoutOccurred()) {
 			mReplayController.animateTo(point);
@@ -153,14 +149,26 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 	 * Start animating the map towards the given point.
 	 */
 	public void animateTo(int x, int y) {
-		animateTo(x, y, 0.5f);
+		// If no layout, delay this call
+		if (!mMapView.isLayoutOccurred()) {
+			mReplayController.animateTo(x, y);
+			return;
+		}
+	
+		if (!mMapView.isAnimating()) {
+			mMapView.mIsFlinging = false;
+			Point mercatorPoint = mMapView.getProjection().toMercatorPixels(x, y, null);
+			// The points provided are "center", we want relative to upper-left for scrolling
+			mercatorPoint.offset(-mMapView.getWidth() / 2, -mMapView.getHeight() / 2);
+			final int xStart = mMapView.getScrollX();
+			final int yStart = mMapView.getScrollY();
+			mMapView.getScroller().startScroll(xStart, yStart, mercatorPoint.x - xStart,
+					mercatorPoint.y - yStart, ANIMATION_DURATION_DEFAULT);
+			mMapView.postInvalidate();
+		}
 	}
 	
 	public void animateTo(int x, int y, float heightOffset) {
-		if (heightOffset != 0.5f) {
-			heightOffset = validateHeightOffset(heightOffset);
-			mMapView.mHeightOffset = heightOffset;
-		}
 		
 		// If no layout, delay this call
 		if (!mMapView.isLayoutOccurred()) {
@@ -169,6 +177,9 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 		}
 
 		if (!mMapView.isAnimating()) {
+			heightOffset = validateHeightOffset(heightOffset);
+			mMapView.mHeightOffset = heightOffset;
+			
 			mMapView.mIsFlinging = false;
 			Point mercatorPoint = mMapView.getProjection().toMercatorPixels(x, y, null);
 			// The points provided are "center", we want relative to upper-left for scrolling
@@ -191,14 +202,26 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 	 */
 	@Override
 	public void setCenter(final IGeoPoint point) {
-		setCenter(point, 0.5f);
+		// If no layout, delay this call
+		if (!mMapView.isLayoutOccurred()) {
+			mReplayController.setCenter(point);
+			return;
+		}
+
+		Point p = mMapView.getProjection().toPixels(point, null);
+		p = mMapView.getProjection().toMercatorPixels(p.x, p.y, p);
+		// The points provided are "center", we want relative to upper-left for scrolling
+		p.offset(-mMapView.getWidth() / 2, -mMapView.getHeight() / 2);
+		mMapView.scrollTo(p.x, p.y);
 	}
 	
 	public void setCenter(final IGeoPoint point, float heightOffset) {
-		if (heightOffset != 0.5f) {
-			heightOffset = validateHeightOffset(heightOffset);
-			mMapView.mHeightOffset = heightOffset;
+		if (mMapView.isAnimating()) {
+			return;
 		}
+		
+		heightOffset = validateHeightOffset(heightOffset);
+		mMapView.mHeightOffset = heightOffset;
 		
 		// If no layout, delay this call
 		if (!mMapView.isLayoutOccurred()) {
@@ -264,6 +287,7 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 	}
 	
 	public boolean zoomIn(final float heightOffset) {
+		mMapView.resetHeightOffset();
 		return zoomInFixing(mMapView.getWidth() / 2, (int)((float)mMapView.getHeight() * validateHeightOffset(heightOffset)));
 	}
 
@@ -298,6 +322,7 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 	}
 	
 	public boolean zoomOut(final float heightOffset) {
+		mMapView.resetHeightOffset();
 		return zoomOutFixing(mMapView.getWidth() / 2, (int)((float)mMapView.getHeight() * validateHeightOffset(heightOffset)));
 	}
 
@@ -329,11 +354,11 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 
 	protected void onAnimationEnd() {
 		final Rect screenRect = mMapView.getProjection().getScreenRect();
-		Point p = mMapView.getProjection().unrotateAndScalePoint(screenRect.centerX(),
-				screenRect.centerY(), null);
+		Point p = mMapView.getProjection().unrotateAndScalePoint(screenRect.centerX(), screenRect.centerY(), null);
 		p = mMapView.getProjection().toMercatorPixels(p.x, p.y, p);
 		// The points provided are "center", we want relative to upper-left for scrolling
-		p.offset(-mMapView.getWidth() / 2, -(int)((float)mMapView.getHeight() * mMapView.mHeightOffset));
+		p.offset(-mMapView.getWidth() / 2, -mMapView.getHeight() / 2);
+		
 		mMapView.mIsAnimating.set(false);
 		mMapView.scrollTo(p.x, p.y);
 		setZoom(mMapView.mTargetZoomLevel.get());

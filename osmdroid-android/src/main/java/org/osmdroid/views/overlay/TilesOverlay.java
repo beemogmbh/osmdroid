@@ -7,6 +7,7 @@ import org.osmdroid.tileprovider.MapTileProviderBase;
 import org.osmdroid.tileprovider.ReusableBitmapDrawable;
 import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeometryMath;
 import org.osmdroid.util.TileLooper;
 import org.osmdroid.util.TileSystem;
 import org.osmdroid.views.MapView;
@@ -124,11 +125,19 @@ public class TilesOverlay extends Overlay implements IOverlayMenuProvider {
 		}
 
 		Projection projection = osmv.getProjection();
-
-		// Get the area we are drawing to
-		Rect screenRect = projection.getScreenRect();
+		final Rect screenRect = projection.getIntrinsicScreenRect();
+		final int screenHeight = screenRect.height();
+		GeometryMath.getBoundingBoxForRotatatedRectangle(screenRect, screenRect.centerX(), screenRect.centerY() , projection.getMapOrientation(), screenRect);
 		projection.toMercatorPixels(screenRect.left, screenRect.top, mTopLeftMercator);
 		projection.toMercatorPixels(screenRect.right, screenRect.bottom, mBottomRightMercator);
+	
+		if (projection.getHeightOffset() != 0.5f) {
+			final int offsetX = (int) (getMercatorHeightOffsetFactorX(projection.getHeightOffset(), projection.getMapOrientation()) * screenHeight);
+			final int offsetY = (int) (getMercatorHeightOffsetFactorY(projection.getHeightOffset(), projection.getMapOrientation()) * screenHeight);	
+			mTopLeftMercator.offset(offsetX, offsetY);
+			mBottomRightMercator.offset(offsetX, offsetY);
+		}
+		
 		mViewPort.set(mTopLeftMercator.x, mTopLeftMercator.y, mBottomRightMercator.x,
 				mBottomRightMercator.y);
 
@@ -156,6 +165,15 @@ public class TilesOverlay extends Overlay implements IOverlayMenuProvider {
 			c.drawLine(centerPoint.x - 9, centerPoint.y, centerPoint.x + 9, centerPoint.y, mDebugPaint);
 		}
 
+	}
+	
+	private double getMercatorHeightOffsetFactorX(final float heightOffset, final float angle) {
+		return -Math.sin(angle * GeometryMath.DEG2RAD) * (heightOffset - 0.5f);
+	}
+	
+	private double getMercatorHeightOffsetFactorY(final float heightOffset, final float angle) {
+		final double sinTheta = Math.sin((angle / 2) * GeometryMath.DEG2RAD);
+		return Math.abs(sinTheta * sinTheta) * (heightOffset - 0.5f) * 2;
 	}
 
 	private final TileLooper mTileLooper = new TileLooper() {

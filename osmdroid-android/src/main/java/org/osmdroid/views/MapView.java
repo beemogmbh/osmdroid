@@ -599,6 +599,17 @@ public class MapView extends ViewGroup implements IMapView, MapViewConstants,
 	public void setHeightOffset(float mHeightOffset) {
 		this.mHeightOffset = mHeightOffset;
 	}
+	
+	public void resetHeightOffset() {
+		mHeightOffset = 0.5f;
+		final Rect screenRect = getProjection().getScreenRect();
+		Point p = getProjection().unrotateAndScalePoint(screenRect.centerX(),
+				screenRect.centerY(), null);
+		p = getProjection().toMercatorPixels(p.x, p.y, p);
+		// The points provided are "center", we want relative to upper-left for scrolling
+		p.offset(-getWidth() / 2, -getHeight() / 2);
+		scrollTo(p.x, p.y);
+	}
 
 	public void invalidateMapCoordinates(Rect dirty) {
 		invalidateMapCoordinates(dirty.left, dirty.top, dirty.right, dirty.bottom, false);
@@ -815,7 +826,9 @@ public class MapView extends ViewGroup implements IMapView, MapViewConstants,
 			}
 
 			boolean handled = false;
-			if (mMultiTouchController != null && mMultiTouchController.onTouchEvent(event)) {
+			
+			// multitouch only if map is centered
+			if (mMultiTouchController != null && mHeightOffset == 0.5f && mMultiTouchController.onTouchEvent(event)) {
 				if (DEBUGMODE) {
 					logger.debug("mMultiTouchController handled onTouchEvent");
 				}
@@ -985,7 +998,7 @@ public class MapView extends ViewGroup implements IMapView, MapViewConstants,
 
 		// Rotate the canvas
 		mRotateScaleMatrix.preRotate(mapOrientation, getWidth() / 2, getHeight() * mHeightOffset);
-
+		
 		// Apply the scale and rotate operations
 		c.concat(mRotateScaleMatrix);
 
