@@ -125,13 +125,12 @@ public class TilesOverlay extends Overlay implements IOverlayMenuProvider {
 		}
 
 		Projection projection = osmv.getProjection();
-		final Rect screenRect = projection.getIntrinsicScreenRect();
-		final int screenHeight = screenRect.height();
-		GeometryMath.getBoundingBoxForRotatatedRectangle(screenRect, screenRect.centerX(), screenRect.centerY() , projection.getMapOrientation(), screenRect);
+		final Rect screenRect = projection.getScreenRect();
 		projection.toMercatorPixels(screenRect.left, screenRect.top, mTopLeftMercator);
 		projection.toMercatorPixels(screenRect.right, screenRect.bottom, mBottomRightMercator);
 	
 		if (projection.getHeightOffset() != 0.5f) {
+			final int screenHeight = screenRect.height();
 			final int offsetX = (int) (getMercatorHeightOffsetFactorX(projection.getHeightOffset(), projection.getMapOrientation()) * screenHeight);
 			final int offsetY = (int) (getMercatorHeightOffsetFactorY(projection.getHeightOffset(), projection.getMapOrientation()) * screenHeight);	
 			mTopLeftMercator.offset(offsetX, offsetY);
