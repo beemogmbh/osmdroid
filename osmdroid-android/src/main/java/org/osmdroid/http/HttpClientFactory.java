@@ -22,17 +22,23 @@ import org.apache.http.params.CoreProtocolPNames;
  */
 public class HttpClientFactory {
 
+	private static String userAgentValue = "AndroidOsmApp";
+
 	private static IHttpClientFactory mFactoryInstance = new IHttpClientFactory() {
 		@Override
 		public HttpClient createHttpClient() {
 			final DefaultHttpClient client = new DefaultHttpClient();
-			client.getParams().setParameter(CoreProtocolPNames.USER_AGENT, "osmdroid");
+			client.getParams().setParameter(CoreProtocolPNames.USER_AGENT, userAgentValue);
 			return client;
 		}
 	};
 
 	public static void setFactoryInstance(final IHttpClientFactory aHttpClientFactory) {
 		mFactoryInstance = aHttpClientFactory;
+	}
+
+	public static void setUserAgentValue(final String newUserAgentValue) {
+		userAgentValue = newUserAgentValue
 	}
 
 	public static HttpClient createHttpClient() {
