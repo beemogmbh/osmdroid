@@ -38,7 +38,7 @@ public class HttpClientFactory {
 	}
 
 	public static void setUserAgentValue(final String newUserAgentValue) {
-		userAgentValue = newUserAgentValue
+		userAgentValue = newUserAgentValue;
 	}
 
 	public static HttpClient createHttpClient() {
