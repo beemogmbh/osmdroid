@@ -21,4 +21,6 @@ public interface IMapController {
 	boolean zoomOut();
 	boolean zoomOutFixing(int xPixel, int yPixel);
 	void zoomToSpan(int latSpanE6, int lonSpanE6);
+	boolean isInvertedTiles();
+	void setInvertedTiles(boolean b);
 }

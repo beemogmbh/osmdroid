@@ -50,6 +50,9 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 	// Keep track of calls before initial layout
 	private ReplayController mReplayController;
 
+	//inverted colors mode
+	private boolean mInvertedTiles=false;
+
 	// ===========================================================
 	// Constructors
 	// ===========================================================
@@ -478,5 +481,28 @@ public class MapController implements IMapController, MapViewConstants, OnFirstL
 				this.mGeoPoint = mGeoPoint;
 			}
 		}
+	}
+
+	/**
+	 * returns true if we're in image/color inverted mode, useful for night time
+	 * This is an Osmdroid specific feature
+	 * @return
+	 * @since 4.4
+	 * @author Alex
+	 */
+	public boolean isInvertedTiles(){
+		 return mInvertedTiles;
+	}
+
+	/**
+	 * sets inverted tile mode. true = inverted colors, false = normal rendering
+	 * This is an Osmdroid specific feature
+	 * @param b
+	 * @since 4.4
+	 * @author Alex
+	 */
+	public void setInvertedTiles(boolean b){
+		mInvertedTiles=b;
+		mMapView.invalidate();
 	}
 }

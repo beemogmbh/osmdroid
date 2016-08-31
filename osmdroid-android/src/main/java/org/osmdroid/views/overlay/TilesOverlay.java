@@ -19,6 +19,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -60,6 +62,7 @@ public class TilesOverlay extends Overlay implements IOverlayMenuProvider {
 	private Projection mProjection;
 
 	private boolean mOptionsMenuEnabled = true;
+	private boolean isInvert=false;
 
 	/** A drawable loading tile **/
 	private BitmapDrawable mLoadingTile = null;
@@ -119,6 +122,8 @@ public class TilesOverlay extends Overlay implements IOverlayMenuProvider {
 		if (DEBUGMODE) {
 			logger.trace("onDraw(" + shadow + ")");
 		}
+
+		isInvert=osmv.getController().isInvertedTiles();
 
 		if (shadow) {
 			return;
@@ -227,8 +232,18 @@ public class TilesOverlay extends Overlay implements IOverlayMenuProvider {
 		}
 	};
 
+	final static float[] negate ={
+			-1.0f,0,0,0,255,//red
+			0,-1.0f,0,0,255,//green
+			0,0,-1.0f,0,255,//blue
+			0,0,0,1.0f,0 //alpha
+	};
+	final static ColorFilter neg = new ColorMatrixColorFilter(negate);
+
 	protected void onTileReadyToDraw(final Canvas c, final Drawable currentMapTile,
 			final Rect tileRect) {
+		if (isInvert)
+			currentMapTile.setColorFilter(neg);
 		mProjection.toPixelsFromMercator(tileRect.left, tileRect.top, mTilePointMercator);
 		tileRect.offsetTo(mTilePointMercator.x, mTilePointMercator.y);
 		currentMapTile.setBounds(tileRect);

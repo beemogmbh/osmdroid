@@ -82,6 +82,17 @@ public class MapControllerOld implements IMapController, MapViewConstants {
 		}
 	}
 
+	boolean invert=false;
+	@Override
+	public boolean isInvertedTiles() {
+		return invert;
+	}
+
+	@Override
+	public void setInvertedTiles(boolean b) {
+		invert=b;
+	}
+
 	/**
 	 * Start animating the map towards the given point.
 	 */
